@@ -1,5 +1,5 @@
 # CS410-18
-being the lecture materials and exercises for the 2017/18 session of CS410 Advanced Functional Programming at the University of Strathclyde
+being the lecture materials and exercises for the 2018/19 session of CS410 Advanced Functional Programming at the University of Strathclyde
 
 ## Installation instructions
 0. Check if you're using bash
