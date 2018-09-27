@@ -18,6 +18,9 @@ $ echo $0
 9. $ git clone https://github.com/pigworker/CS410-18
       -- You should find the files from the lectures, and more as they appear.
 
+## Exercises
+* [Exercise 1](Exercise/One.agda): Order-Preserving Embeddings
+
 ## Last Year's Lecture Videos on YouTube
 
 1. [Tuesday 19 September](https://www.youtube.com/watch?v=O4oczQry9Jw) Programs and Proofs
