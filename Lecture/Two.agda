@@ -58,9 +58,32 @@ ex3 = 6 , 7
 
 -- what should the type of vector concatenation be?
 
-_+V_ : {!!}
-_+V_ = {!!}
+_+N_ : Nat -> Nat -> Nat
+zero +N n = n
+suc m +N n = suc (m +N n)
+
+_+V_ : {X : Set}{m n : Nat} -> Vec X m -> Vec X n -> Vec X (m +N n) 
+[] +V ys = ys
+(x ,- xs) +V ys = x ,- (xs +V ys)
 
 -- +V backwards
+
+-- the graph of _+N_ (not needed for this problem)
+
+data Add : Nat -> Nat -> Nat -> Set where
+  zero : {n : Nat} -> Add zero n n
+  suc : {m n k : Nat} -> Add m n k -> Add (suc m) n (suc k)
+
+
+data Choppable {X : Set}(m n : Nat) : Vec X (m +N n) -> Set where
+  choppable : (xs : Vec X m) -> (ys : Vec X n) -> Choppable m n (xs +V ys) 
+
+chop : {X : Set}(m n : Nat) -> (xs : Vec X (m +N n)) -> Choppable m n xs
+chop zero n xs = choppable [] xs
+chop (suc m) n (x ,- xs) with chop m n xs
+chop (suc m) n (x ,- .(xs +V ys)) | choppable xs ys = choppable (x ,- xs) ys
+
+
+-- Sg and list2Vec
 
 -- zip backwards?
