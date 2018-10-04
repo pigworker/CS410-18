@@ -1,6 +1,7 @@
 module Exercise.One where
 
 open import Lib.Basics
+open import Lib.Nat
 
 ------------------------------------------------------------------------------
 -- ORDER-PRESERVING EMBEDDINGS (or "thinnings" for short)

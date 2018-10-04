@@ -2,11 +2,17 @@ module Lecture.Two where
 
 open import Lib.Basics
 
+open import Lib.Nat
+
 -- VECTORS
 
-data Vec (X : Set) : Nat -> Set where
-  []   : Vec X zero
-  _,-_ : forall {n} -> X -> Vec X n -> Vec X (suc n)
+open import Lib.Vec
+
+-- 2018-10-04: This definition has moved to the library
+-- data Vec (X : Set) : Nat -> Set where
+--   []   : Vec X zero
+--   _,-_ : forall {n} -> X -> Vec X n -> Vec X (suc n)
+
 
 ex : Vec Nat 2
 ex = 37 ,- 5 ,- []
@@ -58,9 +64,11 @@ ex3 = 6 , 7
 
 -- what should the type of vector concatenation be?
 
-_+N_ : Nat -> Nat -> Nat
-zero +N n = n
-suc m +N n = suc (m +N n)
+-- 2018-10-04: This definition has moved to the library
+-- _+N_ : Nat -> Nat -> Nat
+-- zero +N n = n
+-- suc m +N n = suc (m +N n)
+
 
 _+V_ : {X : Set}{m n : Nat} -> Vec X m -> Vec X n -> Vec X (m +N n) 
 [] +V ys = ys

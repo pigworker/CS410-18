@@ -17,16 +17,6 @@ data Two : Set where
 
 ------------------------------------------------------------------------------
 
-data Nat : Set where
-  zero : Nat
-  suc  : Nat -> Nat
-
--- data Nat = Zero | Suc Nat
-
-{-# BUILTIN NATURAL Nat #-}
-
-------------------------------------------------------------------------------
-
 data List (X : Set) : Set where
   [] : List X
   _,-_ : X -> List X -> List X
@@ -90,4 +80,3 @@ _=<_]=_ : {X : Set}(x : X){y z : X} -> y == x -> y == z -> x == z
 x =< refl ]= q = q
 infixr 10 _=[_>=_ _=<_]=_
 infixr 11 _[QED]
-
