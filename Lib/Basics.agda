@@ -74,9 +74,12 @@ sym refl = refl
 
 _[QED] : {X : Set}(x : X) -> x == x
 x [QED] = refl
+
 _=[_>=_ : {X : Set}(x : X){y z : X} -> x == y -> y == z -> x == z
 x =[ refl >= q = q
+
 _=<_]=_ : {X : Set}(x : X){y z : X} -> y == x -> y == z -> x == z
 x =< refl ]= q = q
+
 infixr 10 _=[_>=_ _=<_]=_
 infixr 11 _[QED]

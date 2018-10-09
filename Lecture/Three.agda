@@ -38,6 +38,8 @@ list2Vec (x ,- xs) | _ , xs' = _ , (x ,- xs')
 
 -- equality
 
+-- equational reasoning combinators
+
 assoc : (m n k : Nat) -> (m +N n) +N k == m +N (n +N k)
 assoc zero n k =
   (zero +N n) +N k
@@ -55,7 +57,20 @@ assoc (suc m) n k  =
     [QED]
   -- suc $= assoc m n k
 
--- equational reasoning combinators
+_+Nzero : ∀ n → n +N 0 == n
+zero +Nzero = refl
+suc n +Nzero = suc $= (n +Nzero)
 
--- comm : (m n : Nat) -> m +N n == m +N n
+_+Nsuc_ : (n m : _) → n +N suc m == suc (n +N m)
+zero +Nsuc m = refl
+suc n +Nsuc m = suc $= (n +Nsuc m)
 
+comm : (m n : Nat) -> m +N n == n +N m
+comm zero n = sym (n +Nzero)
+comm (suc m) n =
+  suc (m +N n)
+    =[ suc $= comm m n >=
+  suc (n +N m)
+    =< n +Nsuc m ]=
+  n +N suc m
+    [QED]
