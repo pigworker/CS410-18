@@ -53,3 +53,8 @@ comm+N (suc m) n =
     =< n +Nsuc m ]=
   n +N suc m
     [QED]
+
+_<=_ : Nat -> Nat -> Set
+zero <= y = One
+suc x <= zero = Zero
+suc x <= suc y = x <= y
