@@ -136,7 +136,7 @@ VEC n = record { map = {!!} ; mapidArr = {!!} ; map-arr- = {!!} }
 -}
 
 TAKE : (X : Set) -> Functor (NAT-LE ^op) SET (Vec X)
-TAKE X = record { map = ? ; mapidArr = ? ; map-arr- = ? }
+TAKE X = record { map = {!!} ; mapidArr = {!!} ; map-arr- = {!!} }
 
 record NaturalTransformation
   {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}{CatS : Category ArrS}
