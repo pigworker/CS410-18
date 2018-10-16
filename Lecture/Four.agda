@@ -55,10 +55,16 @@ NAT-LE = record
            ; assoc-arr- = \ {x}{y}{z}{w} f g h -> irrelevant-LE x w _ _
            }
 
---_^op : forall {Obj}{Arr : Obj -> Obj -> Set} ->
---       Category Arr -> Category \ S T -> Arr T S
---C ^op = {!!}
---  where open Category C
+_^op : forall {Obj}{Arr : Obj -> Obj -> Set} ->
+       Category Arr -> Category \ S T -> Arr T S
+C ^op = record
+          { idArr = idArr
+          ; _-arr-_ = \ g f -> f -arr- g
+          ; idArr-arr- = \ f -> f -arr-idArr
+          ; _-arr-idArr = \ f -> idArr-arr- f
+          ; assoc-arr- = \ f g h -> sym (assoc-arr- h g f)
+          }
+  where open Category C
 
 ADDITION : Category {One} \ _ _ -> Nat
 ADDITION = record
@@ -108,14 +114,29 @@ record Functor
     map-arr- : forall {A B C}(f : ArrS A B)(g : ArrS B C) ->
                map (f S.-arr- g) == (map f T.-arr- map g)
 
---LIST : Functor SET SET List
---LIST = {!!}
+list : {A B : Set} -> (A -> B) -> List A -> List B
+list f [] = []
+list f (a ,- as) = f a ,- list f as
 
---VEC : (n : Nat) -> Functor SET SET (\ X -> Vec X n)
---VEC n = {!!}
+listId : forall {A} (as : List A) -> list (\ z -> z) as == as
+listId [] = refl
+listId (a ,- as) = (a ,-_) $= listId as   --  (a ,-_) is Haskell's (a :)
 
---TAKE : (X : Set) -> Functor (NAT-LE ^op) SET (Vec X)
---TAKE X = {!!}
+listComp : forall {A B C} {f : A -> B} {g : B -> C} (as : List A) ->
+           list (\ r -> g (f r)) as == list g (list f as)
+listComp [] = refl
+listComp (a ,- as) = (_ ,-_) $= listComp as
+           
+LIST : Functor SET SET List
+LIST = record { map = list ; mapidArr = ext listId ; map-arr- = \ f g -> ext listComp }
+
+{-
+VEC : (n : Nat) -> Functor SET SET (\ X -> Vec X n)
+VEC n = record { map = {!!} ; mapidArr = {!!} ; map-arr- = {!!} }
+-}
+
+TAKE : (X : Set) -> Functor (NAT-LE ^op) SET (Vec X)
+TAKE X = record { map = ? ; mapidArr = ? ; map-arr- = ? }
 
 record NaturalTransformation
   {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}{CatS : Category ArrS}
