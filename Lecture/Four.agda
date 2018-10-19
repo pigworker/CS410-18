@@ -130,13 +130,42 @@ listComp (a ,- as) = (_ ,-_) $= listComp as
 LIST : Functor SET SET List
 LIST = record { map = list ; mapidArr = ext listId ; map-arr- = \ f g -> ext listComp }
 
+ID : Functor SET SET \ X -> X
+ID = record { map = \ f -> f
+            ; mapidArr = refl
+            ; map-arr- = \ f g -> refl
+            }
+
 {-
 VEC : (n : Nat) -> Functor SET SET (\ X -> Vec X n)
 VEC n = record { map = {!!} ; mapidArr = {!!} ; map-arr- = {!!} }
 -}
+take : {X : Set}{A B : Nat} -> B <= A -> Vec X A -> Vec X B
+take {X} {m} {zero} p xs = []
+take {X} {.0} {suc n} () []
+take {X} {(suc m)} {suc n} p (x ,- xs) = x ,- take p xs
+
+takeAll : forall {X n} (xs : Vec X n) -> take (refl-LE n) xs == xs
+takeAll [] = refl
+takeAll (x ,- xs) = (x ,-_) $= takeAll xs
+
+takeComp : forall a b c (ba : b <= a) (cb : c <= b) {X} (xs : Vec X a) ->
+           take {B = c} (trans-LE c b a cb ba) xs ==
+            take  cb (take ba xs)
+takeComp a b zero ba cb xs = refl
+takeComp .0 zero (suc c) ba () []
+takeComp .0 (suc b) (suc c) () cb []
+takeComp .(suc _) zero (suc c) ba () (x ,- xs)
+takeComp (suc a) (suc b) (suc c) ba cb (x ,- xs) =
+-- takeComp .(suc a) (suc b) (suc c) ba cb (_,-_ {n = a} x xs) =
+  (x ,-_) $= takeComp a b c ba cb xs
 
 TAKE : (X : Set) -> Functor (NAT-LE ^op) SET (Vec X)
-TAKE X = record { map = {!!} ; mapidArr = {!!} ; map-arr- = {!!} }
+TAKE X = record
+  { map = take
+  ; mapidArr = ext takeAll
+  ; map-arr- = \ {a}{b}{c} ba cb -> ext (takeComp a b c ba cb)
+  }
 
 record NaturalTransformation
   {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}{CatS : Category ArrS}
@@ -151,3 +180,6 @@ record NaturalTransformation
     transform : (X : ObjS) -> ArrT (ObjF X) (ObjG X)
     natural : {X Y : ObjS} -> (f : ArrS X Y) ->
               (transform X -arr- map G f) == (map F f -arr- transform Y)
+
+singleton : NaturalTransformation (\ X -> X) ID List LIST
+singleton = natTrans (\ X x -> x ,- []) \ f -> refl
