@@ -53,6 +53,9 @@ data _==_ {l}{X : Set l}(x : X) : X -> Set where
 
 infix 30 _==_
 
+reff : {X : Set}(x : X) -> x == x
+reff x = refl
+
 _=$=_ : {X Y : Set}{f f' : X -> Y}{x x' : X} ->
         f == f' -> x == x' -> f x == f' x'
 refl =$= refl = refl
@@ -67,7 +70,11 @@ _=$_ : {S : Set}{T : S -> Set}{f g : (x : S) -> T x} ->
        (f == g) -> (x : S) -> f x == g x
 refl =$ x = refl
 
-infixl 20 _=$=_ _$=_ _=$_
+_=$: : {X Y : Set}{f f' : .X -> Y}{x x' : X} ->
+        f == f' -> f x == f' x'
+refl =$: = refl
+
+infixl 20 _=$=_ _$=_ _=$_ _=$:
 
 sym : {X : Set}{x y : X} -> x == y -> y == x
 sym refl = refl
