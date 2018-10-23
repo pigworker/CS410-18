@@ -191,7 +191,27 @@ module _
               Functor CatS CatT ObjG
            ->
               Functor CatR CatT \ X -> ObjG (ObjF X)
-  F -Func- G = {!!}
+  Functor.map (F -Func- G) f = G.map (F.map f)
+    where
+    module F = Functor F
+    module G = Functor G
+  Functor.mapidArr (F -Func- G) =
+      G.map (F.map R.idArr)
+        =[ G.map $= F.mapidArr >=
+      G.map S.idArr
+        =[ G.mapidArr >=
+      T.idArr
+        [QED]
+    where
+    module F = Functor F
+    module G = Functor G
+  Functor.map-arr- (F -Func- G) f g = 
+      G.map (F.map (f R.-arr- g))
+        =[ G.map $= F.map-arr- f g >=
+      G.map (F.map f S.-arr- F.map g)
+        =[ G.map-arr- (F.map f) (F.map g) >=
+      (G.map (F.map f) T.-arr- G.map (F.map g))
+        [QED]
     where
     module F = Functor F
     module G = Functor G
@@ -199,7 +219,13 @@ module _
   infixr 20 _-Func-_
 
 CATEGORY : Category SomeFunctor
-CATEGORY = {!!}
+CATEGORY = record
+             { idArr = _ , ID _
+             ; _-arr-_ = \ { (ObjF , F) (ObjG , G) -> _ , (F -Func- G) }
+             ; idArr-arr- = \ F -> refl
+             ; _-arr-idArr = \ F -> refl
+             ; assoc-arr- = \ F G H -> refl
+             }
 
 {-
 VEC : (n : Nat) -> Functor SET SET (\ X -> Vec X n)
@@ -265,11 +291,11 @@ record Monad {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr}
   KlArr : Obj -> Obj -> Set
   KlArr S T = Arr S (ObjM T)
   field
-    idCompKleisli : {X : Obj} ->
+    returnJoin : {X : Obj} ->
       (R.transform (ObjM X) -arr- J.transform X) == idArr
-    compIdKleisli : {X : Obj} ->
+    mapReturnJoin : {X : Obj} ->
       (map (R.transform X) -arr- J.transform X) == idArr
-    assocKleisli : {X : Obj} ->
+    joinJoin : {X : Obj} ->
       (J.transform (ObjM X) -arr- J.transform X)
       ==
       (map (J.transform X) -arr- J.transform X)
@@ -307,17 +333,26 @@ module _
 module _ where
   open NaturalTransformation
 
+  _+L_ : {X : Set} -> List X -> List X -> List X
+  [] +L ys = ys
+  (x ,- xs) +L ys = x ,- (xs +L ys)
+
+  concat : {X : Set} -> List (List X) -> List X
+  concat [] = []
+  concat (xs ,- xss) = xs +L concat xss
+
   concatNT : NaturalTransformation (LIST -Func- LIST) LIST
-  concatNT = {!!}
+  transform concatNT X = concat
+  natural concatNT = {!!}
 
 LISTMonad : Monad LIST
 LISTMonad = record
-  { returnNT = singletonNT
-  ; joinNT = concatNT
-  ; idCompKleisli = {!!}
-  ; compIdKleisli = {!!}
-  ; assocKleisli = {!!}
-  }
+              { returnNT = singletonNT
+              ; joinNT = concatNT
+              ; returnJoin = {!!}
+              ; mapReturnJoin = {!!}
+              ; joinJoin = {!!}
+              }
 
 
 
