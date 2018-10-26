@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type --no-unicode #-}
-
+{-# OPTIONS --irrelevant-projections #-}
 module Lecture.Four where
 
 open import Lib.Basics
@@ -307,7 +307,16 @@ _*Cat_ : {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}(CatS : Category ArrS)
          {ObjT : Set}{ArrT : ObjT -> ObjT -> Set}(CatT : Category ArrT) ->
          Category {ObjS * ObjT} \ {(SS , TS) (ST , TT) ->
            ArrS SS ST * ArrT TS TT}
-CatS *Cat CatT = {!!}
+CatS *Cat CatT =
+  record
+    { idArr = (S.idArr , T.idArr)
+    ; _-arr-_ = \ { (fS , fT) (gS , gT) -> (fS S.-arr- gS) , (fT T.-arr- gT) }
+    ; idArr-arr- = \ { {AS , AT} {BS , BT} (fS , fT) ->
+                          reff _,_ =$= (Category.idArr-arr- CatS fS) =$= (Category.idArr-arr- CatT fT) }
+    ; _-arr-idArr = \ { {AS , AT} {BS , BT} (fS , fT) ->
+                          reff _,_ =$= (Category._-arr-idArr CatS fS) =$= (Category._-arr-idArr CatT fT) }
+    ; assoc-arr- = \ { (fS , fT) (gS , gT) (hS , hT) -> reff _,_ =$= Category.assoc-arr- CatS fS gS hS =$= Category.assoc-arr- CatT fT gT hT }
+    }
   where
     module S = Category CatS
     module T = Category CatT
@@ -326,16 +335,51 @@ module _
       open Functor
 
     _*Fun_ :
-         Functor (CatS *Cat CatS') (CatT *Cat CatT') {!!} -- \ { (S , S') -> (ObjF S , ObjF' S') }
-    _*Fun_ = {!!}
+         Functor (CatS *Cat CatS') (CatT *Cat CatT')
+           \ { (S , S') -> (ObjF S , ObjF' S') }
+    map _*Fun_ (f , f') = (F.map f) , (F'.map f')
+    mapidArr _*Fun_ = reff _,_ =$= F.mapidArr =$= F'.mapidArr
+    map-arr- _*Fun_ (f , f') (g , g') =
+      reff _,_ =$= F.map-arr- f g =$= F'.map-arr- f' g'
+
+module _ {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}{CatS : Category ArrS} where
+  open Category CatS
+  open Functor
 
 
+  Delta : Functor CatS (CatS *Cat CatS) \ X -> X , X
+  Delta = record
+    { map = \ f -> f , f
+    ; mapidArr = refl
+    ; map-arr- = \ f g -> refl
+    }
+
+module _ where
+  open Category SET
+  open Functor
+
+  SETPair : Functor (SET *Cat SET) SET \ { (S , T) -> S * T }
+  map SETPair (f , f') (a , a') = (f a) , (f' a')
+  mapidArr SETPair = refl
+  map-arr- SETPair (f , f') (g , g') = refl
+  
 module _ where
   open NaturalTransformation
 
   _+L_ : {X : Set} -> List X -> List X -> List X
   [] +L ys = ys
   (x ,- xs) +L ys = x ,- (xs +L ys)
+
+  appendNatural : {X Y : Set}(f : X -> Y)(xs ys : List X) ->
+                   list f (xs +L ys) == (list f xs +L list f ys)
+  appendNatural f [] ys = refl
+  appendNatural f (x ,- xs) ys = (f x ,-_) $= appendNatural f xs ys
+
+  appendNT : NaturalTransformation (Delta -Func- (LIST *Fun LIST) -Func- SETPair)
+                                   LIST
+  appendNT = record { transform = \ X -> \ { (xs , ys) -> xs +L ys }
+                    ; natural = \ f -> ext \ { (xs , ys) -> appendNatural f xs ys }
+                    }
 
   concat : {X : Set} -> List (List X) -> List X
   concat [] = []
