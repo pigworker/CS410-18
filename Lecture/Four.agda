@@ -159,7 +159,7 @@ listComp : forall {A B C} {f : A -> B} {g : B -> C} (as : List A) ->
            list (\ r -> g (f r)) as == list g (list f as)
 listComp [] = refl
 listComp (a ,- as) = (_ ,-_) $= listComp as
-           
+
 LIST : Functor SET SET List
 LIST = record { map = list ; mapidArr = ext listId ; map-arr- = \ f g -> ext listComp }
 
@@ -205,7 +205,7 @@ module _
     where
     module F = Functor F
     module G = Functor G
-  Functor.map-arr- (F -Func- G) f g = 
+  Functor.map-arr- (F -Func- G) f g =
       G.map (F.map (f R.-arr- g))
         =[ G.map $= F.map-arr- f g >=
       G.map (F.map f S.-arr- F.map g)
@@ -325,10 +325,10 @@ module _
       module F' = Functor F'
       open Functor
 
-    _*Fun_ : 
+    _*Fun_ :
          Functor (CatS *Cat CatS') (CatT *Cat CatT') {!!} -- \ { (S , S') -> (ObjF S , ObjF' S') }
     _*Fun_ = {!!}
-    
+
 
 module _ where
   open NaturalTransformation
@@ -380,15 +380,15 @@ LISTMonad = record
         G.map S.idArr
           =[ G.mapidArr >=
         T.idArr
-          [QED] 
+          [QED]
     ; map-arr- = \ h k ->
         G.map (F.map (h R.-arr- k))
           =[ G.map $= F.map-arr- h k >=
         G.map (F.map h S.-arr- F.map k)
-          =[ G.map-arr- (F.map h) (F.map k) >= 
+          =[ G.map-arr- (F.map h) (F.map k) >=
         (G.map (F.map h) T.-arr- G.map (F.map k))
           [QED]
-    } 
+    }
 
 
 CATEGORY = record
@@ -411,7 +411,7 @@ CatS *Cat CatT = record
     module S = Category CatS
     module T = Category CatT
 
-    _*Fun_ : 
+    _*Fun_ :
          Functor (CatS *Cat CatS') (CatT *Cat CatT') \ { (S , S') -> (ObjF S , ObjF' S') }
     map _*Fun_ (f , f') = F.map f , F'.map f'
     mapidArr _*Fun_ = reff _,_ =$= F.mapidArr =$= F'.mapidArr
@@ -419,7 +419,6 @@ CatS *Cat CatT = record
 
 
 
-    
 module _ {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}{CatS : Category ArrS} where
   open Category CatS
   open Functor
@@ -432,12 +431,12 @@ module _ {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}{CatS : Category ArrS} where
 module _ where
   open Category SET
   open Functor
-  
+
   SETPair : Functor (SET *Cat SET) SET \ { (S , T) -> S * T }
   map SETPair (f , g) (a , b) = f a , g b
   mapidArr SETPair = refl
   map-arr- SETPair f g = refl
-  
+
 
 
 _+L_ : {X : Set} -> List X -> List X -> List X
