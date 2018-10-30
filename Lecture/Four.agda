@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type --no-unicode #-}
-{-# OPTIONS --irrelevant-projections #-}
+{- OPTIONS --irrelevant-projections -}
 module Lecture.Four where
 
 open import Lib.Basics
@@ -288,8 +288,6 @@ record Monad {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr}
     joinNT   : NaturalTransformation (M -Func- M) M
   module R = NaturalTransformation returnNT
   module J = NaturalTransformation joinNT
-  KlArr : Obj -> Obj -> Set
-  KlArr S T = Arr S (ObjM T)
   field
     returnJoin : {X : Obj} ->
       (R.transform (ObjM X) -arr- J.transform X) == idArr
@@ -299,8 +297,48 @@ record Monad {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr}
       (J.transform (ObjM X) -arr- J.transform X)
       ==
       (map (J.transform X) -arr- J.transform X)
+  KlArr : Obj -> Obj -> Set
+  KlArr S T = Arr S (ObjM T)
   Kleisli : Category KlArr
-  Kleisli = {!!}
+  Kleisli = record
+    { idArr = R.transform _
+    ; _-arr-_ = \ h k -> h -arr- map k -arr- J.transform _
+    ; idArr-arr- = \ {S} {T} f ->
+      (R.transform S -arr- (map f -arr- J.transform T))
+        =< assoc-arr- _ _ _ ]=
+      ((R.transform S -arr- map f) -arr- J.transform T)
+        =[ (_-arr- J.transform T) $= R.natural f  >=        
+      ((f -arr- R.transform (ObjM T)) -arr- J.transform T)
+         =[ assoc-arr- _ _ _ >=
+      (f -arr- R.transform (ObjM T) -arr- J.transform T)
+        =[ (f -arr-_) $= returnJoin >=
+      (f -arr- idArr)
+        =[ f -arr-idArr >=                
+      f
+        [QED]
+    ; _-arr-idArr = \ {S} {T} f ->
+      (f -arr- (map (R.transform T) -arr- J.transform T))
+        =[ (f -arr-_) $= mapReturnJoin >=
+      (f -arr- idArr)
+        =[ f -arr-idArr >=
+      f
+        [QED]
+    ; assoc-arr- = \ {R}{S}{T}{U} f g h ->
+      (f -arr- map g -arr- J.transform T) -arr- map h -arr- J.transform U
+         =[ {!!} >=  --boring assoc
+      f -arr- map g -arr- (J.transform T -arr- map h) -arr- J.transform U
+         =[ (\ z -> f -arr- map g -arr- z -arr- J.transform U) $= J.natural h >=         
+      f -arr- map g -arr- (map (map h) -arr- J.transform (ObjM U)) -arr- J.transform U
+         =[ {!!} >= -- boring assoc        
+      f -arr- map g -arr- map (map h) -arr- J.transform (ObjM U) -arr- J.transform U
+         =[ {!!} >= -- boring assoc
+      f -arr- map g -arr- map (map h) -arr- (J.transform (ObjM U) -arr- J.transform U)
+         =[ (\ z -> f -arr- map g -arr- map (map h) -arr- z) $= joinJoin >=
+      f -arr- map g -arr- map (map h) -arr- (map (J.transform U) -arr- J.transform U)
+         =[ {!!} >= -- boring functoriality + assoc
+      f -arr- map (g -arr- map h -arr- J.transform U) -arr- J.transform U
+         [QED]
+    }
 
 
 _*Cat_ : {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}(CatS : Category ArrS)
@@ -384,10 +422,21 @@ module _ where
   concat : {X : Set} -> List (List X) -> List X
   concat [] = []
   concat (xs ,- xss) = xs +L concat xss
-
+  
+  concatNatural : forall {X Y} (f : X -> Y) (xss : List (List X)) ->
+                  list f (concat xss) == concat (list (list f) xss)
+  concatNatural f [] = refl
+  concatNatural f (xs ,- xss) =
+    list f (xs +L concat xss)
+      =[ appendNatural f xs (concat xss) >=
+    (list f xs +L list f (concat xss))
+      =[ (list f xs +L_) $= concatNatural f xss >=
+    (list f xs +L concat (list (list f) xss))
+      [QED]
+  
   concatNT : NaturalTransformation (LIST -Func- LIST) LIST
   transform concatNT X = concat
-  natural concatNT = {!!}
+  natural concatNT f = ext (concatNatural f)
 
 LISTMonad : Monad LIST
 LISTMonad = record
