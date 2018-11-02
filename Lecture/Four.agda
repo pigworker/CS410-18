@@ -131,8 +131,18 @@ record MonotoneMap (XP YP : SomePreorder) : Set where
       in  {x0 x1 : X} -> x0 <X= x1 ->
                  mapData x0 <Y= mapData x1
 
---PREORDER : Category MonotoneMap
---PREORDER = {!!}
+PREORDER : Category MonotoneMap
+PREORDER = record
+             { idArr = record { mapData = id ; mapMonotone = id }
+             ; _-arr-_ = \ f g ->
+               record { mapData = mapData f - mapData g
+                      ; mapMonotone = \ p -> (mapMonotone g) (mapMonotone f p)
+                      }
+             ; idArr-arr- = \ f -> refl
+             ; _-arr-idArr = \ f  -> refl
+             ; assoc-arr- = \ f g h -> refl
+             }
+  where open MonotoneMap
 
 {- moved to Lib.Cat.Functor
 record Functor
@@ -487,13 +497,48 @@ module _ where
   transform concatNT X = concat
   natural concatNT f = ext (concatNatural f)
 
+_+L[] : {X : Set} -> (xs : List X) -> (xs +L []) == xs
+[] +L[] = refl
+(x ,- xs) +L[] = (x ,-_) $= (xs +L[])
+
+concatMapSing : {X : Set} -> (xs : List X) ->
+                 concat (list (\ x -> x ,- []) xs) == xs
+concatMapSing [] = refl
+concatMapSing (x ,- xs) = (x ,-_) $= concatMapSing xs
+
+assoc+L : {X : Set} (xs ys zs : List X) -> ((xs +L ys) +L zs) == (xs +L (ys +L zs))
+assoc+L [] ys zs = refl
+assoc+L (x ,- xs) ys zs = (x ,-_) $= assoc+L xs ys zs
+
+concatAppend : {X : Set} -> (xss yss : List (List X)) ->
+               concat (xss +L yss) == (concat xss +L concat yss)
+concatAppend [] yss = refl
+concatAppend (xs ,- xss) yss =
+  (xs +L concat (xss +L yss))
+    =[ (xs +L_) $= concatAppend xss yss >=
+  (xs +L (concat xss +L concat yss))
+      =< assoc+L xs _ _ ]=
+  ((xs +L concat xss) +L concat yss)
+    [QED]
+
+concatConcat : {X : Set} -> (xs : List (List (List X))) ->
+                concat (concat xs) == concat (list concat xs)
+concatConcat [] = refl
+concatConcat (xss ,- xsss) =
+  concat (xss +L concat xsss)
+    =[ concatAppend xss _ >=
+  (concat xss +L concat (concat xsss))
+    =[ (concat xss +L_) $= concatConcat xsss >=
+  (concat xss +L concat (list concat xsss))
+    [QED]
+
 LISTMonad : Monad LIST
 LISTMonad = record
               { returnNT = singletonNT
               ; joinNT = concatNT
-              ; returnJoin = {!!}
-              ; mapReturnJoin = {!!}
-              ; joinJoin = {!!}
+              ; returnJoin = ext _+L[]
+              ; mapReturnJoin = ext concatMapSing
+              ; joinJoin = ext concatConcat
               }
 
 

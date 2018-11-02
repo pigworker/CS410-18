@@ -28,18 +28,18 @@ infixr 20 _-syn-_
           SynArr C S T -> Arr S T
 [[ < f > ]]Sy = f
 [[_]]Sy {C = C} idSyn = idArr where open Category C
-[[_]]Sy {C = C} (d -syn- d')  = [[ d ]]Sy -arr- [[ d' ]]Sy where open Category C
-[[ mapSyn F d ]]Sy = map [[ d ]]Sy where open Functor F
-[[ -[ d ]- ]]Sy = [[ d ]]Sy
+[[_]]Sy {C = C} (f -syn- g) = [[ f ]]Sy -arr- [[ g ]]Sy where open Category C
+[[ mapSyn F f ]]Sy = map [[ f ]]Sy where open Functor F
+[[ -[ f ]- ]]Sy = [[ f ]]Sy
 
 record _=arr=_
   {Obj}{S T : Obj}{Arr : Obj -> Obj -> Set}{C : Category Arr}
-  (d d' : SynArr C S T)
+  (f g : SynArr C S T)
   : Set
   where
     constructor arrEq
     field
-      eqArr : [[ d ]]Sy == [[ d' ]]Sy
+      eqArr : [[ f ]]Sy == [[ g ]]Sy
 open _=arr=_ public
 
 [=IN_!_=] : forall {Obj}{S T : Obj}{Arr : Obj -> Obj -> Set}(C : Category Arr)
@@ -66,7 +66,7 @@ module _ where
 
   [[_]]MPs : forall {Obj}{S T : Obj}{Arr : Obj -> Obj -> Set}{C : Category Arr} ->
             Star (MapPile C) S T -> Arr S T
-  [[_]]MPs {C = C} ms = hom C (\ X -> X) [[_]]MP ms          
+  [[_]]MPs {C = C} ms = hom C (\ X -> X) [[_]]MP ms
 
   normSyn : forall {Obj}{S T : Obj}{Arr : Obj -> Obj -> Set}{C : Category Arr} ->
              SynArr C S T -> Star (MapPile C) S T
@@ -158,7 +158,7 @@ reduced : forall {Obj}{S T}{Arr : Obj -> Obj -> Set}{C : Category Arr} ->
   {d d' : SynArr C S T} ->
   Reduced d d' ->
   d =arr= d'
-reduced {d = d} {d'} r with reduced' d d' r 
+reduced {d = d} {d'} r with reduced' d d' r
 ... | refl , refl , q = q
 
 rd : forall {Obj}{S T}{Arr : Obj -> Obj -> Set}{C : Category Arr} ->
