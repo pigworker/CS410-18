@@ -1,5 +1,4 @@
 {-# OPTIONS --type-in-type --no-unicode #-}
-{- OPTIONS --irrelevant-projections -}
 module Lib.Cat.NatTrans where
 
 open import Lib.Basics

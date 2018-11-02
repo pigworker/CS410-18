@@ -1,4 +1,5 @@
 {-# OPTIONS --type-in-type --no-unicode #-}
+{-# OPTIONS --irrelevant-projections #-}
 module Lib.Cat.Free where
 
 open import Lib.Basics
@@ -85,7 +86,7 @@ module _ {X : Set}{R : X -> X -> Set}
   open Functor G
   private module S = Category C
   private module T = Category C'
-  
+
   .mapHom : forall {x x'}(rs : Star R x x') ->
             map (hom C F f rs) == hom C' (F - ObjG) (f - map) rs
   mapHom [] = mapidArr

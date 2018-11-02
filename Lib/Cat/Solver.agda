@@ -1,4 +1,5 @@
 {-# OPTIONS --type-in-type --no-unicode #-}
+{-# OPTIONS --irrelevant-projections #-}
 module Lib.Cat.Solver where
 
 open import Lib.Basics
