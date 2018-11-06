@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type --no-unicode #-}
-{-# OPTIONS --irrelevant-projections #-}
+{- OPTIONS --irrelevant-projections -}
 module Lib.Cat.Solver where
 
 open import Lib.Basics
@@ -51,8 +51,8 @@ open _=arr=_ public
 data MapPile {Obj}{Arr : Obj -> Obj -> Set}(C : Category Arr)
   : Obj -> Obj -> Set
   where
-    arr : forall {S T} -> Arr S T -> MapPile C S T
-    _,-_ : forall {Obj'}{Arr' : Obj' -> Obj' -> Set}{C' : Category Arr'}
+    <_> : forall {S T} -> Arr S T -> MapPile C S T
+    mapSyn : forall {Obj'}{Arr' : Obj' -> Obj' -> Set}{C' : Category Arr'}
               {ObjF : Obj' -> Obj}(F : Functor C' C ObjF) ->
               {S' T' : Obj'} -> MapPile C' S' T' ->
               MapPile C (ObjF S') (ObjF T')
@@ -60,8 +60,8 @@ data MapPile {Obj}{Arr : Obj -> Obj -> Set}(C : Category Arr)
 module _ where
   [[_]]MP : forall {Obj}{S T : Obj}{Arr : Obj -> Obj -> Set}{C : Category Arr} ->
             MapPile C S T -> Arr S T
-  [[ arr f ]]MP = f
-  [[ F ,- m ]]MP = map [[ m ]]MP
+  [[ < f > ]]MP = f
+  [[ mapSyn F m ]]MP = map [[ m ]]MP
     where open Functor F
 
   [[_]]MPs : forall {Obj}{S T : Obj}{Arr : Obj -> Obj -> Set}{C : Category Arr} ->
@@ -70,10 +70,10 @@ module _ where
 
   normSyn : forall {Obj}{S T : Obj}{Arr : Obj -> Obj -> Set}{C : Category Arr} ->
              SynArr C S T -> Star (MapPile C) S T
-  normSyn < f > = arr f ,- []
+  normSyn < f > = < f > ,- []
   normSyn idSyn = []
   normSyn (d -syn- d') = normSyn d +S normSyn d'
-  normSyn (mapSyn F d) = star _ (F ,-_) (normSyn d)
+  normSyn (mapSyn F d) = star _ (mapSyn F) (normSyn d)
   normSyn -[ d ]- = normSyn d
 
   .normSynLemma : forall {Obj}{Arr : Obj -> Obj -> Set}{C : Category Arr}{S T} ->
@@ -99,9 +99,9 @@ module _ where
       =[ map $= normSynLemma d >=
     map ([[ normSyn d ]]MPs)
       =[ mapHom _ [[_]]MP F (normSyn d) >=
-    hom C _ (\ r -> [[ F ,- r ]]MP) (normSyn d)
-      =< homStar _ (\ r -> F ,- r) C _ [[_]]MP (normSyn d) ]=
-    [[ star _ (_,-_ F) (normSyn d) ]]MPs
+    hom C _ (\ r -> [[ mapSyn F r ]]MP) (normSyn d)
+      =< homStar _ (mapSyn F) C _ [[_]]MP (normSyn d) ]=
+    [[ star _ (mapSyn F) (normSyn d) ]]MPs
       [QED]
     where open Functor F
   normSynLemma -[ d ]- = normSynLemma d
