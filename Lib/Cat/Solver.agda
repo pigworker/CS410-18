@@ -123,7 +123,7 @@ module _ where
 
 ArrEq : forall {Obj}{S T S' T' : Obj}{Arr : Obj -> Obj -> Set}{C : Category Arr} ->
            (d : SynArr C S T)(d' : SynArr C S' T') -> Set
-ArrEq {Obj}{S}{T}{S'}{T'} d d' =
+ArrEq {S = S}{T}{S'}{T'} d d' =
   Sg (S == S') \ { refl -> Sg (T == T') \ { refl -> d =arr= d' } }
 
 Reduced : forall {Obj}{S T S' T' : Obj}{Arr : Obj -> Obj -> Set}{C : Category Arr} ->

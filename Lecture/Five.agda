@@ -22,6 +22,12 @@ open Adjunction
 --     adjoints to forgetful functors
 --     curry and uncurry
 
+
+
+
+
+
+
 open MonotoneMap
 
 -- forgetful functor that forgets about the order
