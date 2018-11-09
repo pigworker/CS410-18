@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type --no-unicode #-}
-{- OPTIONS --irrelevant-projections -}
+{-# OPTIONS --irrelevant-projections #-}
 module Lib.Cat.Free where
 
 open import Lib.Basics

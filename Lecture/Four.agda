@@ -8,6 +8,7 @@ open import Lib.Vec
 open import Lib.Cat.Category
 open import Lib.Cat.Functor
 open import Lib.Cat.NatTrans
+open import Lib.Cat.ProductCat
 open import Lib.Cat.Solver
 
 
@@ -125,7 +126,7 @@ SomePreorder =
 record MonotoneMap (XP YP : SomePreorder) : Set where
   field
     mapData     : fst XP -> fst YP
-    mapMonotone :
+    .mapMonotone :
       let X , _<X=_ , _ = XP
           Y , _<Y=_ , _ = YP
       in  {x0 x1 : X} -> x0 <X= x1 ->
@@ -400,6 +401,7 @@ record Monad {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr}
       -}
     }
 
+{- moved to Lib.Cat.ProductCat
 _*Cat_ : {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}(CatS : Category ArrS)
          {ObjT : Set}{ArrT : ObjT -> ObjT -> Set}(CatT : Category ArrT) ->
          Category {ObjS * ObjT} \ {(SS , TS) (ST , TT) ->
@@ -438,6 +440,7 @@ module _
     mapidArr _*Fun_ = reff _,_ =$= F.mapidArr =$= F'.mapidArr
     map-arr- _*Fun_ (f , f') (g , g') =
       reff _,_ =$= F.map-arr- f g =$= F'.map-arr- f' g'
+-}
 
 module _ {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}{CatS : Category ArrS} where
   open Category CatS

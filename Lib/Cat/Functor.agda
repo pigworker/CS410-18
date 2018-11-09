@@ -1,4 +1,5 @@
 {-# OPTIONS --type-in-type --no-unicode #-}
+{-# OPTIONS --irrelevant-projections #-}
 module Lib.Cat.Functor where
 
 open import Lib.Basics
@@ -78,3 +79,13 @@ CATEGORY = record
              ; _-arr-idArr = \ F -> refl
              ; assoc-arr- = \ F G H -> refl
              }
+
+open Functor
+
+_^opFun : {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}{CatS : Category ArrS}
+          {ObjT : Set}{ArrT : ObjT -> ObjT -> Set}{CatT : Category ArrT}
+          {ObjF : ObjS -> ObjT} ->
+          Functor CatS CatT ObjF -> Functor (CatS ^op) (CatT ^op) ObjF
+map (F ^opFun) = map F
+mapidArr (F ^opFun) = mapidArr F
+map-arr- (F ^opFun) f g = map-arr- F g f
