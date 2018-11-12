@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type --no-unicode #-}
-{-# OPTIONS --irrelevant-projections #-}
+{- OPTIONS --irrelevant-projections -}
 module Lecture.Four where
 
 open import Lib.Basics
@@ -10,6 +10,7 @@ open import Lib.Cat.Functor
 open import Lib.Cat.NatTrans
 open import Lib.Cat.ProductCat
 open import Lib.Cat.Solver
+open import Lib.Cat.Monad
 
 
 -- recap (NaturalTransformation, singletonNT)                -- C
@@ -304,6 +305,7 @@ module _ where
   transform singletonNT X x = x ,- []
   natural singletonNT f = refl
 
+{- moved to Lib.Cat.Monad
 record Monad {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr}
              {ObjM : Obj -> Obj}
              (M : Functor C C ObjM) : Set where
@@ -400,6 +402,7 @@ record Monad {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr}
          [QED]
       -}
     }
+-}
 
 {- moved to Lib.Cat.ProductCat
 _*Cat_ : {ObjS : Set}{ArrS : ObjS -> ObjS -> Set}(CatS : Category ArrS)
