@@ -27,3 +27,11 @@ record Adjunction
              transform down _ (transform up _ h) == h
     downup : {A : ObjC}{Y : ObjD}{h' : ArrD (ObjF A) Y} ->
              transform up _ (transform down _ h') == h'
+
+--    forall X : ObjC, B : ObjD.
+--
+--            F X  -->   B
+--            ============
+--              X  --> G B
+
+-- Notation: F ⊣ G, "F is left adjoint to G" or eq. "G is right adjoint to F"
