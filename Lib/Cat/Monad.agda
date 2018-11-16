@@ -9,7 +9,7 @@ open import Lib.Cat.NatTrans
 open import Lib.Cat.Solver
 
 module _ {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr} where
-  
+
   record Monad {ObjM : Obj -> Obj}
                (M : Functor C C ObjM) : Set where
     open Category C
@@ -133,6 +133,7 @@ module _ {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr} where
         (idSyn -syn- mapSyn M idSyn -syn- < transform (joinNT MonadM) X >)
           [[QED]]
       =]
+
     mMorph ((MONAD Category.-arr- mn) np) = mMorph mn -NT- mMorph np
     mMorphReturn (Category._-arr-_ MONAD {_ , _ , MonadM} {_ , _ , MonadN} {_ , _ , MonadP} mn np) X
       =
@@ -164,7 +165,8 @@ module _ {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr} where
            =[[ categories refl >>=
         (< transform (mMorph mn) (ObjM X) > -syn-
          mapSyn N < transform (mMorph mn) X > -syn-
-         -[ < transform (joinNT MonadN) X > -syn- < transform (mMorph np) X > ]-)
+         -[ < transform (joinNT MonadN) X > -syn-
+            < transform (mMorph np) X > ]-)
            =[[ reduced (rd , rd , rq (mMorphJoin np X)) >>=
         (< transform (mMorph mn) (ObjM X) > -syn-
          mapSyn N < transform (mMorph mn) X > -syn-
@@ -173,20 +175,20 @@ module _ {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr} where
             < transform (joinNT MonadP) X > ]-)
            =[[ categories refl >>=
         (< transform (mMorph mn) (ObjM X) > -syn-
-         -[ mapSyn N < transform (mMorph mn) X > -syn- < transform (mMorph np) (ObjN X) > ]- -syn-
-            mapSyn P < transform (mMorph np) X > -syn-
-            < transform (joinNT MonadP) X >)
+         -[ mapSyn N < transform (mMorph mn) X > -syn-
+            < transform (mMorph np) (ObjN X) > ]- -syn-
+            mapSyn P < transform (mMorph np) X > -syn- < transform (joinNT MonadP) X >)
            =<< reduced (rd , rq (natural (mMorph np) (transform (mMorph mn) X)) , rd , rd) ]]=
         (< transform (mMorph mn) (ObjM X) > -syn-
          -[ < transform (mMorph np) (ObjM X) > -syn- mapSyn P < transform (mMorph mn) X > ]- -syn-
-            mapSyn P < transform (mMorph np) X > -syn-
-            < transform (joinNT MonadP) X >)
+            mapSyn P < transform (mMorph np) X > -syn- < transform (joinNT MonadP) X >)
            =[[ categories refl >>=
         ((< transform (mMorph mn) (ObjM X) > -syn- < transform (mMorph np) (ObjM X) >) -syn-
          mapSyn P (< transform (mMorph mn) X > -syn- < transform (mMorph np) X >) -syn-
          < transform (joinNT MonadP) X >)
          [[QED]]
       =]
+
     Category.idArr-arr- MONAD f = eqMonadMorph _ _ \ X -> idArr-arr- _
     Category._-arr-idArr MONAD f = eqMonadMorph _ _ \ X -> _ -arr-idArr
     Category.assoc-arr- MONAD f g h = eqMonadMorph _ _ \ X -> assoc-arr- _ _ _
@@ -194,9 +196,10 @@ module _ {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr} where
   module _ where
     open Functor
     open MonadMorphism
-    
+
     ForgetMONAD : Functor MONAD (FUNCTOR C C) \ { (ObjM , M , _) -> ObjM , M }
     map ForgetMONAD = mMorph
     mapidArr ForgetMONAD = refl
     map-arr- ForgetMONAD f g = refl
+
 
