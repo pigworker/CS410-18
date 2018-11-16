@@ -20,11 +20,11 @@ module _ {Obj : Set}{Arr : Obj -> Obj -> Set}{C : Category Arr} where
     module R = NaturalTransformation returnNT
     module J = NaturalTransformation joinNT
     field
-      returnJoin : {X : Obj} ->
+      .returnJoin : {X : Obj} ->
         (R.transform (ObjM X) -arr- J.transform X) == idArr
-      mapReturnJoin : {X : Obj} ->
+      .mapReturnJoin : {X : Obj} ->
         (map (R.transform X) -arr- J.transform X) == idArr
-      joinJoin : {X : Obj} ->
+      .joinJoin : {X : Obj} ->
         (J.transform (ObjM X) -arr- J.transform X)
         ==
         (map (J.transform X) -arr- J.transform X)

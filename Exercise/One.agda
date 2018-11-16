@@ -1,3 +1,4 @@
+{-# OPTIONS --allow-unsolved-metas #-}
 module Exercise.One where
 
 open import Lib.Basics

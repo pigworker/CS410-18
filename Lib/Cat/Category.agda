@@ -44,3 +44,13 @@ SET = record
         ; _-arr-idArr = \ f -> refl
         ; assoc-arr- = \ f g h -> refl
         }
+
+module _ where
+  open Category
+  
+  DISCRETE : (X : Set) -> Category {X} _==_
+  idArr       (DISCRETE X) = refl
+  _-arr-_     (DISCRETE X) refl refl = refl
+  idArr-arr-  (DISCRETE X) refl = refl
+  _-arr-idArr (DISCRETE X) refl = refl
+  assoc-arr-  (DISCRETE X) refl refl refl = refl
