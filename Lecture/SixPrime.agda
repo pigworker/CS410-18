@@ -108,7 +108,6 @@ module _ {C : Con} where
   mapM f (ret x) = ret (f x)
   mapM f (layer (s , g)) = layer (s , (\ x -> mapM f (g x)))
 
-
   mapMid : {X : Set} -> (x : MC X) -> mapM id x == x
   mapMid (ret x) = refl
   mapMid (layer (s , g)) = (\ z → layer (s , z)) $= ext (\ x -> mapMid (g x))
@@ -360,7 +359,7 @@ module _ {C : Con}{ObjM' : Set -> Set}{M' : Functor SET SET ObjM'}{monadM' : Mon
   mMorphJoin (liftMor e) X = ext (lift-morphJoin e)
 
   dropMor : MonadMorphism  (monadM C) monadM' -> NaturalTransformation [[ C ]]CF M'
-  transform (dropMor e) X (s , g) = transform (mMorph e) X (layer (s , (g - ret)))
+  transform (dropMor e) X y = transform (mMorph e) X (layer (map<! ret y))
   natural (dropMor e) f = ext lemma
     where lemma : {X Y : Set} {f : X -> Y} (x : [[ C ]]C X) ->
                   map M' f (transform (mMorph e) X (layer (fst x , (\ a -> ret (snd x a)))))
@@ -378,6 +377,50 @@ module _ {C : Con}{ObjM' : Set -> Set}{M' : Functor SET SET ObjM'}{monadM' : Mon
             mapSyn [[ C ]]CF (< f > -syn- < ret >) -syn- < layer > -syn- < transform (mMorph e) Y >
               [[QED]]
             =])
+
+
+
+  .roundtrip1 : (e : MonadMorphism  (monadM C) monadM') ->
+               liftMor (dropMor e) == e
+  roundtrip1 e = eqMonadMorph _ _ \ X -> ext (lemma X)
+   where lemma : forall X -> (x : M C X) ->
+                  lift (dropMor e) X x == transform (mMorph e) X x
+         lemma X (ret x) = sym ((\ z -> z x) $= mMorphReturn e X)
+         lemma X (layer (s , g)) = let join' = transform (joinNT monadM')
+                                       return' = transform (returnNT monadM')
+                                       eta =  transform (mMorph e) in
+           join' X (eta (ObjM' X) (layer (map<! ((lift (dropMor e) X) - ret) (s , g))))
+             =[ (\ z -> join' X (eta (ObjM' X) (layer (s , z))))
+                            $= ext (\ x -> ret $= lemma X (g x)) >=
+           join' X (eta (ObjM' X) (layer (map<! (eta X - ret) (s , g))))
+             =[ (\ z -> join' X (z (s , g))) $= sym (natural (dropMor e) (eta X)) >=
+           join' X (map M' (eta X) (eta (M C X) (layer (map<! ret (s , g)))))
+             =< (\ z -> z (layer (map<! ret (s , g)))) $= mMorphJoin e X ]=
+           eta X (join (layer (map<! ret (s , g))))
+             =< (\ z -> eta X (layer (s , z))) $= ext (\ x -> joinLaw2 (g x)) ]=
+           eta X (join (mapM ret (layer (s , g))))
+             =[ (eta X) $= joinLaw2 (layer (s , g)) >=
+           eta X (layer (s , g))
+             [QED]
+
+  .roundtrip2 : (e : NaturalTransformation [[ C ]]CF M') ->
+                dropMor (liftMor e) == e
+  roundtrip2 e = eqNatTrans _ _ \ X -> ext (lemma X)
+    where lemma : forall X y ->
+                  transform (joinNT monadM') X
+                    (transform e (ObjM' X)
+                      (map<! (transform (returnNT monadM') X) y))
+                     == transform e X y
+          lemma X y = let join' = transform (joinNT monadM')
+                          return' = transform (returnNT monadM')
+                          eta = transform e in
+             join' X (eta (ObjM' X) (map<! (return' X) y))
+               =< (\ z -> join' X (z y)) $= natural e (return' X) ]=
+             join' X (map M' (return' X) (eta X y))
+               =[ (\ z -> z (eta X y)) $= (mapReturnJoin monadM') >=
+             eta X y
+               [QED]
+
 
 
 
