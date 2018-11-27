@@ -38,19 +38,63 @@ record ConMor (C C' : Con) : Set where
     sh : Sh C -> Sh C'
     po : {s : Sh C} -> Po C' (sh s) -> Po C s
 
+
 module _ {C C' : Con} where
 
   open NaturalTransformation
+  open Con
   open ConMor
 
   [[_]]NT : ConMor C C' -> NaturalTransformation [[ C ]]CF [[ C' ]]CF
-  [[ f <!mor g ]]NT = {!!}
+  transform [[ f <!mor g ]]NT X (s , k) = (f s) , (g - k)
+  natural [[ f <!mor g ]]NT h = refl
 
-  complete : (nt : NaturalTransformation [[ C ]]CF [[ C' ]]CF) ->
-             Sg (ConMor C C') (\ m -> [[ m ]]NT == nt)
-  complete nt = {!!}
+  ntConMor : (nt : NaturalTransformation [[ C ]]CF [[ C' ]]CF) ->
+             ConMor C C'
+  ntConMor nt = (\ s -> fst (transform nt (Po C s) (s , id)))
+          <!mor \ {s} p' -> snd (transform nt (Po C s) (s , id)) p'
+
+  .complete : (nt : NaturalTransformation [[ C ]]CF [[ C' ]]CF) ->
+              [[ ntConMor nt ]]NT == nt
+  complete nt = eqNatTrans _ _ \ X -> ext \ { (s , k) -> natural nt k =$ (s , id) }
+
+
+ConMorBis : (C C' : Con) -> Set
+ConMorBis (S <! P) C' =  (s : S) -> [[ C' ]]C (P s)
+
+module _ {C C' : Con} where
+
+  open NaturalTransformation
+  open Con
+  open ConMor
+
+  [[_]]NTBis : ConMorBis C C' -> NaturalTransformation [[ C ]]CF [[ C' ]]CF
+  transform [[ f ]]NTBis X (s , k) with f s
+  ... | s' , g = s' , (g - k)
+  natural [[ f ]]NTBis h = refl
+
+  ntConMorBis : (nt : NaturalTransformation [[ C ]]CF [[ C' ]]CF) ->
+             ConMorBis C C'
+  ntConMorBis nt s = transform nt (Po C s) (s , id)
+
+  .completeBis : (nt : NaturalTransformation [[ C ]]CF [[ C' ]]CF) ->
+              [[ ntConMorBis nt ]]NTBis == nt
+  completeBis nt = eqNatTrans _ _ \ X ->
+    ext \ { (s , k) -> natural nt k =$ (s , id) }
+
 
 -- Indexed containers
+
+module _ {O I : Set} where
+  record Hancock : Set where
+    constructor _<[_!_]
+    field
+      Command  : O -> Set
+      Response : (o : O) -> Command o -> Set
+      result   : (o : O)(c : Command o) -> Response o c -> I
+
+  [[_]]H : Hancock -> (I -> Set) -> (O -> Set)
+  [[ Co <[ Re ! re ] ]]H P o = Sg (Co o) \ c -> (r : Re o c) -> P (re o c r)
 
 -- What they mean
 
