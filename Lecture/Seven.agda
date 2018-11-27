@@ -93,10 +93,10 @@ module _ {O I : Set} where
       Response : (o : O) -> Command o -> Set
       result   : (o : O)(c : Command o) -> Response o c -> I
 
+-- What they mean
+
   [[_]]H : Hancock -> (I -> Set) -> (O -> Set)
   [[ Co <[ Re ! re ] ]]H P o = Sg (Co o) \ c -> (r : Re o c) -> P (re o c r)
-
--- What they mean
 
 -- How they are functorial
 
