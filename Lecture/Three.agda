@@ -57,6 +57,7 @@ assoc (suc m) n k  =
     [QED]
   -- suc $= assoc m n k
 
+{- moved to Lib.nat
 _+Nzero : ∀ n → n +N 0 == n
 zero +Nzero = refl
 suc n +Nzero = suc $= (n +Nzero)
@@ -64,6 +65,7 @@ suc n +Nzero = suc $= (n +Nzero)
 _+Nsuc_ : (n m : _) → n +N suc m == suc (n +N m)
 zero +Nsuc m = refl
 suc n +Nsuc m = suc $= (n +Nsuc m)
+-}
 
 comm : (m n : Nat) -> m +N n == n +N m
 comm zero n = sym (n +Nzero)

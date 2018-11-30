@@ -37,6 +37,11 @@ data All {X : Set} (P : X -> Set) : List X -> Set where
   [] : All P []
   _,-_ : forall {x xs} -> P x -> All P xs -> All P (x ,- xs)
 
+_+L_ : {X : Set} -> List X -> List X -> List X
+[] +L ys = ys
+(x ,- xs) +L ys = x ,- (xs +L ys)
+infixr 3 _+L_
+
 ------------------------------------------------------------------------------
 
 record Sg {l}(S : Set l)(T : S -> Set l) : Set l where
