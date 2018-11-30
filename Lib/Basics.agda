@@ -9,11 +9,18 @@ data Zero : Set where
 record One : Set where
   constructor <>
 
+{-# BUILTIN UNIT One #-}
+{-# COMPILE GHC One = data () (()) #-}
+
 ------------------------------------------------------------------------------
 
 data Two : Set where
   ff : Two
   tt : Two
+
+{-# BUILTIN BOOL Two #-}
+{-# BUILTIN FALSE ff #-}
+{-# BUILTIN TRUE tt #-}
 
 ------------------------------------------------------------------------------
 
@@ -24,6 +31,7 @@ data List (X : Set) : Set where
 infixr 60 _,-_
 
 {-# BUILTIN LIST List #-}
+{-# COMPILE GHC List = data [] ([] | (:)) #-}
 
 data All {X : Set} (P : X -> Set) : List X -> Set where
   [] : All P []
