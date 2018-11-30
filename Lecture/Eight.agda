@@ -17,13 +17,20 @@ record Stream (X : Set) : Set where
 open Stream
 
 repeat : {X : Set} -> X -> Stream X
-repeat x = {!!}
+head (repeat x) = x
+tail (repeat x) = repeat x
 
 strapp : {S T : Set} -> Stream (S -> T) -> Stream S -> Stream T
-strapp fs ss = {!!}
+head (strapp fs ss) = (head fs) (head ss)
+tail (strapp fs ss) = strapp (tail fs) (tail ss)
 
 beginners : {X : Set}(n : Nat) -> Stream X -> Vec X n
-beginners n xs = {!!}
+beginners zero xs = []
+beginners (suc n) xs = (head xs) ,- (beginners n (tail xs))
+
+natsFrom : Nat -> Stream Nat
+head (natsFrom n) = n
+tail (natsFrom n) = natsFrom (suc n)
 
 ----------------------------------------------------------------------------
 -- chars and strings and IO (boring bits)
@@ -121,7 +128,11 @@ Painting : Nat * Nat -> Set
 Painting = Matrix ColourChar
 
 paintAction : {wh : Nat * Nat} -> Matrix ColourChar wh -> List Action
-paintAction mat = {!!}
+paintAction [] = []
+paintAction (line ,- rest) = paintLine line +L paintAction rest
+  where paintLine : {n : Nat} -> Vec ColourChar n -> List Action
+        paintLine [] = []
+        paintLine ((fg - c / bg) ,- xs) = fgText fg ,- bgText bg ,- sendText (c ,- []) ,- paintLine xs
 
 ---------------------------------------------------------------------------
 -- APPLICATIONS                                                          --
@@ -149,10 +160,15 @@ APP : Set
 APP = Sg (Nat * Nat) Application
 
 appPaint : APP -> List Action
-appPaint (_ , app) = {!!}
+appPaint (_ , app) = let (x , y) = cursorMe app
+                     in  goRowCol 0 0 ,- paintAction (paintMe app) +L goRowCol y x ,- []
+  
 
 appHandler : Event -> APP -> APP ** List Action
-appHandler ev (wh , app) = {!!}
+appHandler (key k) (wh , app) = let app' = handleKey app k
+                                in  (wh , app') , appPaint (wh , app')
+appHandler (resize w h) (wh , app) = let app' = handleResize app (w , h)
+                                     in ((w , h) , app') , appPaint ((w , h) , app')
 
 -- Code on the Haskell side to make things go
 postulate
@@ -170,10 +186,24 @@ appMain : (forall wh -> Application wh) -> IO One
 appMain app = mainAppLoop ((0 , 0) , app (0 , 0)) appHandler
   -- will get resized dynamically to size of terminal, first thing
 
-rectApp : Char -> forall wh -> Application wh
-rectApp c wh = {!!}
+rectApp : Char -> Colour -> forall wh -> Application wh
+handleKey (rectApp c fg wh) (char c') = rectApp c' fg wh
+handleKey (rectApp c fg wh) enter = rectApp c (nextColour fg) wh
+  where nextColour : Colour -> Colour
+        nextColour black = red
+        nextColour red = green
+        nextColour green = yellow
+        nextColour yellow = blue
+        nextColour blue = magenta
+        nextColour magenta = cyan
+        nextColour cyan = white
+        nextColour white = black
+handleKey (rectApp c fg wh) _ = rectApp c fg wh
+handleResize (rectApp c fg wh) wh' = rectApp c fg wh'
+paintMe (rectApp c fg (w , h)) = vPure (vPure (fg - c / black))
+cursorMe (rectApp c fg (w , h)) = 0 , 0
 
 main : IO One
-main = appMain (rectApp '*')
+main = appMain (rectApp '*' green)
 
 --  agda --compile --ghc-flag "-lncurses" Lecture/Eight.agda
