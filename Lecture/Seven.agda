@@ -1,5 +1,5 @@
 {-# OPTIONS --type-in-type --no-unicode #-}
-{-# OPTIONS --irrelevant-projections #-}
+--{-# OPTIONS --irrelevant-projections #-}
 module Lecture.Seven where
 
 open import Lib.Basics
