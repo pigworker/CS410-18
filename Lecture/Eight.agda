@@ -4,9 +4,32 @@ open import Lib.Basics
 open import Lib.Nat
 open import Lib.Vec
 
---open import Lec1Done
---open import Lec2Done
---open import Lec3Done
+
+----------------------------------------------------------------------------
+-- coinduction for beginners
+----------------------------------------------------------------------------
+
+record Stream (X : Set) : Set where
+  coinductive
+  constructor _,-_
+  field
+    head : X
+    tail : Stream X
+open Stream
+
+repeat : {X : Set} -> X -> Stream X
+head (repeat x) = x
+tail (repeat x) = repeat x
+
+strapp : {S T : Set} -> Stream (S -> T) -> Stream S -> Stream T
+head (strapp fs ss) = (head fs) (head ss)
+tail (strapp fs ss) = strapp (tail fs) (tail ss)
+
+beginners : {X : Set}(n : Nat) -> Stream X -> Vec X n
+beginners zero xs = []
+beginners (suc n) xs = (head xs) ,- (beginners n (tail xs))
+
+
 
 
 list : {X Y : Set} -> (X -> Y) -> List X -> List Y
