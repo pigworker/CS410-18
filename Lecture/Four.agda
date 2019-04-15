@@ -167,7 +167,6 @@ SomeFunctor (ObjS , ArrS , CatS) (ObjT , ArrT , CatT) =
    Functor CatS CatT ObjF
 -}
 
-
 list : {A B : Set} -> (A -> B) -> List A -> List B
 list f [] = []
 list f (a ,- as) = f a ,- list f as

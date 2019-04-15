@@ -28,10 +28,18 @@ data List (X : Set) : Set where
   [] : List X
   _,-_ : X -> List X -> List X
 
-infixr 60 _,-_
+infixr 60 _,-_ _+L_
 
 {-# BUILTIN LIST List #-}
 {-# COMPILE GHC List = data [] ([] | (:)) #-}
+
+list : forall {X Y} -> (X -> Y) -> List X -> List Y
+list f [] = []
+list f (x ,- xs) = f x ,- list f xs
+
+_+L_ : forall {X} -> List X -> List X -> List X
+[] +L ys = ys
+(x ,- xs) +L ys = x ,- xs +L ys
 
 data All {X : Set} (P : X -> Set) : List X -> Set where
   [] : All P []
@@ -63,11 +71,24 @@ _-_ : forall {i j k}
   (a : A) -> C a (f a)
 (f - g) a = g (f a)
 
+infixr 50 _-_
+
 ------------------------------------------------------------------------------
 
 data _+_ (A B : Set) : Set where
   inl : A -> A + B
   inr : B -> A + B
+
+_<+>_ : forall {A B}{P : A + B -> Set}
+        (f : (a : A) -> P (inl a))(g : (b : B) -> P (inr b)) ->
+        (x : A + B) -> P x
+(f <+> g) (inl a) = f a
+(f <+> g) (inr b) = g b
+
+either : forall {S T U V : Set} ->
+         (S -> U) -> (T -> V) -> (S + T) -> (U + V)
+either su tv = (su - inl) <+> (tv - inr)
+
 
 ------------------------------------------------------------------------------
 

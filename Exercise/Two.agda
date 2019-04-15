@@ -1,4 +1,5 @@
 {-# OPTIONS --type-in-type #-}
+{-# OPTIONS --allow-unsolved-metas #-}
 
 module Exercise.Two where
 
