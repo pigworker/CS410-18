@@ -45,6 +45,7 @@ data All {X : Set} (P : X -> Set) : List X -> Set where
   [] : All P []
   _,-_ : forall {x xs} -> P x -> All P xs -> All P (x ,- xs)
 
+
 ------------------------------------------------------------------------------
 
 record Sg {l}(S : Set l)(T : S -> Set l) : Set l where

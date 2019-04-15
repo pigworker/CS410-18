@@ -4,7 +4,6 @@ open import Lib.Basics
 open import Lib.Nat
 open import Lib.Vec
 
-
 ----------------------------------------------------------------------------
 -- coinduction for beginners
 ----------------------------------------------------------------------------
@@ -29,30 +28,41 @@ beginners : {X : Set}(n : Nat) -> Stream X -> Vec X n
 beginners zero xs = []
 beginners (suc n) xs = (head xs) ,- (beginners n (tail xs))
 
-
-
-
-list : {X Y : Set} -> (X -> Y) -> List X -> List Y
-list f []         = []
-list f (x ,- xs)  = f x ,- list f xs
-
-
+natsFrom : Nat -> Stream Nat
+head (natsFrom n) = n
+tail (natsFrom n) = natsFrom (suc n)
 
 ----------------------------------------------------------------------------
--- chars and strings
+-- chars and strings and IO (boring bits)
 ----------------------------------------------------------------------------
 
-postulate       -- this means that we just suppose the following things exist...
+{-
+postulate  -- needed for Agda 2.5.4
   Char : Set
   String : Set
+-}
 {-# BUILTIN CHAR Char #-}
 {-# BUILTIN STRING String #-}
 
-primitive       -- these are baked in; they even work!
-  primCharEquality    : Char -> Char -> Two
-  primStringAppend    : String -> String -> String
-  primStringToList    : String -> List Char
-  primStringFromList  : List Char -> String
+-- For compilation purposes we make _*_ into its own data type
+record _**_ (S T : Set) : Set where
+  constructor _,_
+  field
+    outl : S
+    outr : T
+open _**_
+{-# COMPILE GHC _**_ = data (,) ((,)) #-}
+infixr 4 _**_
+
+postulate       -- Connecting to the Haskell IO monad
+  IO      : Set -> Set
+  return  : {A : Set} -> A -> IO A
+  _>>=_   : {A B : Set} -> IO A -> (A -> IO B) -> IO B
+infixl 1 _>>=_
+{-# BUILTIN IO IO #-}
+{-# COMPILE GHC IO = type IO #-}
+{-# COMPILE GHC return = (\ _ -> return) #-}
+{-# COMPILE GHC _>>=_ = (\ _ _ -> (>>=)) #-}
 
 
 ---------------------------------------------------------------------------
@@ -63,20 +73,15 @@ primitive       -- these are baked in; they even work!
 
 data Colour : Set where
   black red green yellow blue magenta cyan white : Colour
+
 {-# COMPILE GHC Colour = data HaskellSetup.Colour (HaskellSetup.Black | HaskellSetup.Red | HaskellSetup.Green | HaskellSetup.Yellow | HaskellSetup.Blue | HaskellSetup.Magenta | HaskellSetup.Cyan | HaskellSetup.White) #-}
 
-record _**_ (S T : Set) : Set where
-  constructor _,_
-  field
-    outl : S
-    outr : T
-open _**_
-{-# COMPILE GHC _**_ = data (,) ((,)) #-}
-infixr 4 _**_
+-- Keys
 
-{- Here's the characterization of keys I give you -}
 data Direction : Set where up down left right : Direction
+
 data Modifier : Set where normal shift control : Modifier
+
 data Key : Set where
   char       : Char -> Key
   arrow      : Modifier -> Direction -> Key
@@ -85,19 +90,23 @@ data Key : Set where
   delete     : Key
   escape     : Key
   tab        : Key
+
+-- Events
+
 data Event : Set where
   key     : (k : Key) -> Event
   resize  : (w h : Nat) -> Event
 
-{- This type collects the things you're allowed to do with the text window. -}
-data Action : Set where
-  goRowCol : Nat -> Nat -> Action    -- send the cursor somewhere
-  sendText : List Char -> Action     -- send some text
-  move     : Direction -> Nat -> Action  -- which way and how much
-  fgText   : Colour -> Action
-  bgText   : Colour -> Action
+-- The things you're allowed to do with a text window.
 
-{- I wire all of that stuff up to its Haskell counterpart. -}
+data Action : Set where
+  goRowCol : Nat -> Nat -> Action        -- send the cursor somewhere
+  sendText : List Char -> Action         -- send some text
+  move     : Direction -> Nat -> Action  -- which way and how much
+  fgText   : Colour -> Action            -- change foreground colour
+  bgText   : Colour -> Action            -- change background colour
+
+{- Wiring all of that stuff up to its Haskell counterpart. -}
 {-# FOREIGN GHC import qualified Lib.ANSIEscapes as ANSIEscapes #-}
 {-# FOREIGN GHC import qualified Lib.HaskellSetup as HaskellSetup #-}
 {-# COMPILE GHC Direction = data ANSIEscapes.Dir (ANSIEscapes.DU | ANSIEscapes.DD | ANSIEscapes.DL | ANSIEscapes.DR) #-}
@@ -118,25 +127,12 @@ Matrix C (w , h) = Vec (Vec C w) h
 Painting : Nat * Nat -> Set
 Painting = Matrix ColourChar
 
-vecFoldR : {X Y : Set} -> (X -> Y -> Y) -> Y -> {n : Nat} -> Vec X n -> Y
-vecFoldR c n [] = n
-vecFoldR c n (x ,- xs) = c x (vecFoldR c n xs)
-
 paintAction : {wh : Nat * Nat} -> Matrix ColourChar wh -> List Action
-paintAction = vecFoldR (vecFoldR (\ {(f - c / b) k -> \ as ->
-  fgText f ,- bgText b ,- sendText (c ,- []) ,- k as}) id) []
-
-
-postulate       -- Haskell has a monad for doing IO, which we use at the top level
-  IO      : Set -> Set
-  return  : {A : Set} -> A -> IO A
-  _>>=_   : {A B : Set} -> IO A -> (A -> IO B) -> IO B
-infixl 1 _>>=_
-{-# BUILTIN IO IO #-}
-{-# COMPILE GHC IO = type IO #-}
-{-# COMPILE GHC return = (\ _ -> return) #-}
-{-# COMPILE GHC _>>=_ = (\ _ _ -> (>>=)) #-}
-
+paintAction [] = []
+paintAction (line ,- rest) = paintLine line +L paintAction rest
+  where paintLine : {n : Nat} -> Vec ColourChar n -> List Action
+        paintLine [] = []
+        paintLine ((fg - c / bg) ,- xs) = fgText fg ,- bgText bg ,- sendText (c ,- []) ,- paintLine xs
 
 ---------------------------------------------------------------------------
 -- APPLICATIONS                                                          --
@@ -159,41 +155,22 @@ record Application (wh : Nat * Nat) : Set where
     cursorMe      : Nat * Nat  -- x,y coords
 open Application public
 
--- Now your turn. Build the appropriate handler to connect these
--- applications with mainAppLoop. Again, work in two stages, first
--- figuring out how to do the right actions, then managing the
--- state properly. (1 mark)
-
-_+L_ : {X : Set} -> List X -> List X -> List X
-[] +L ys = ys
-(x ,- xs) +L ys = x ,- (xs +L ys)
-infixr 3 _+L_
 
 APP : Set
 APP = Sg (Nat * Nat) Application
 
 appPaint : APP -> List Action
-appPaint (_ , app) =
-  goRowCol 0 0 ,- paintAction p
-     -- must have composition here, to work around compiler bug
-     -- paintAction (paintMatrix p)
-     -- segfaults, because p is erased
-  +L (goRowCol (snd xy) (fst xy) ,- [])
-  where
-    p  = paintMe app
-    xy = cursorMe app
+appPaint (_ , app) = let (x , y) = cursorMe app
+                     in  goRowCol 0 0 ,- paintAction (paintMe app) +L goRowCol y x ,- []
+  
 
 appHandler : Event -> APP -> APP ** List Action
-appHandler (key k) (wh , app) = app' , appPaint app'
-  where
-    app' : APP
-    app' = _ , handleKey app k
-appHandler (resize w h) (wh , app) = app' , appPaint app'
-  where
-    app' : APP
-    app' = _ , handleResize app (w , h)
+appHandler (key k) (wh , app) = let app' = handleKey app k
+                                in  (wh , app') , appPaint (wh , app')
+appHandler (resize w h) (wh , app) = let app' = handleResize app (w , h)
+                                     in ((w , h) , app') , appPaint ((w , h) , app')
 
-{- This is the bit of code I wrote in Haskell to animate your code. -}
+-- Code on the Haskell side to make things go
 postulate
   mainAppLoop : {S : Set} ->             -- program state
     -- INITIALIZER
@@ -209,18 +186,24 @@ appMain : (forall wh -> Application wh) -> IO One
 appMain app = mainAppLoop ((0 , 0) , app (0 , 0)) appHandler
   -- will get resized dynamically to size of terminal, first thing
 
-vPure : {n : Nat}{X : Set} -> X -> Vec X n
-vPure {zero} x = []
-vPure {suc n} x = x ,- vPure x
-
-rectApp : Char -> forall wh -> Application wh
-handleKey (rectApp c wh) (char x) = rectApp x wh
-handleKey (rectApp c wh) _ = rectApp c wh
-handleResize (rectApp c _)  wh = rectApp c wh
-paintMe      (rectApp c wh)    = vPure (vPure (green - c / black))
-cursorMe     (rectApp c wh)    = wh
+rectApp : Char -> Colour -> forall wh -> Application wh
+handleKey (rectApp c fg wh) (char c') = rectApp c' fg wh
+handleKey (rectApp c fg wh) enter = rectApp c (nextColour fg) wh
+  where nextColour : Colour -> Colour
+        nextColour black = red
+        nextColour red = green
+        nextColour green = yellow
+        nextColour yellow = blue
+        nextColour blue = magenta
+        nextColour magenta = cyan
+        nextColour cyan = white
+        nextColour white = black
+handleKey (rectApp c fg wh) _ = rectApp c fg wh
+handleResize (rectApp c fg wh) wh' = rectApp c fg wh'
+paintMe (rectApp c fg (w , h)) = vPure (vPure (fg - c / black))
+cursorMe (rectApp c fg (w , h)) = 0 , 0
 
 main : IO One
-main = appMain (rectApp '*')
+main = appMain (rectApp '*' green)
 
---  agda --compile --ghc-flag "-lncurses" Eight.agda
+--  agda --compile --ghc-flag "-lncurses" Lecture/Eight.agda
